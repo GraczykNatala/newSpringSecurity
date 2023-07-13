@@ -1,8 +1,44 @@
 package pl.gr.newspringsecurity.user;
 
-import org.springframework.security.core.userdetails.UserDetails;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+
+import static pl.gr.newspringsecurity.user.Permission.*;
+
+@RequiredArgsConstructor
 public enum Role {
-    USER,
-    ADMIN
+    USER(Collections.emptySet()),
+    ADMIN(Set.of(ADMIN_READ,
+                 ADMIN_CREATE,
+                 ADMIN_UPDATE,
+                 ADMIN_DELETE,
+                 MANAGER_READ,
+                 MANAGER_CREATE,
+                 MANAGER_UPDATE,
+                 MANAGER_DELETE)),
+    MANAGER(Set.of(MANAGER_READ,
+                   MANAGER_CREATE,
+                   MANAGER_UPDATE,
+                   MANAGER_DELETE));
+
+    private static final String ROLE = "ROLE_";
+    @Getter
+    private final Set<Permission> permissions;
+
+    public List<SimpleGrantedAuthority> getAuthorities() {
+      var authorities =  getPermissions()
+                .stream()
+                .map(permission -> new SimpleGrantedAuthority(permission.name()))
+                .toList();
+      authorities.add(new SimpleGrantedAuthority(ROLE + this.name()));
+      return authorities;
+    }
 }
+
